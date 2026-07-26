@@ -17,6 +17,7 @@ const Home = () => {
         const data = await generateReport({ jobDescription, selfDescription, resumeFile })
         navigate(`/interview/${data._id}`)
     }
+    
 
     if (loading) {
         return (
@@ -81,7 +82,21 @@ const Home = () => {
                                 </span>
                                 <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
                                 <p className='dropzone__subtitle'>PDF or DOCX (Max 5MB)</p>
-                                <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf,.docx' />
+                                {/* <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf,.docx' /> */}
+{/*  */}
+<input
+    ref={resumeInputRef}
+    type="file"
+    id="resume"
+    name="resume"
+    accept=".pdf"
+    onChange={(e) => {
+        console.log("Selected file:", e.target.files[0]);
+    }}
+/>
+
+{/*  */}
+  
                             </label>
                         </div>
 

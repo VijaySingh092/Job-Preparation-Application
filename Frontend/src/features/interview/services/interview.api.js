@@ -21,12 +21,19 @@ export const generateInterviewReport =async({jobDescription,selfDescription,resu
 }
 
 
-export const getInterviewReportById=async (interview)=>{
-    const response = await api.get(`/api/interview/report/${interview}`)
+export const getInterviewReportById=async (interviewId)=>{
+    const response = await api.get(`/api/interview/report/${interviewId}`)
     return response.data
 }
 
 export const getAllInterviewReports=async()=>{
     const response = await api.get("api/interview")
+    return response.data
+}
+
+export const generateResumePdf = async ({interviewReportId})=>{
+    const response = await api.post(`/api/interview/resume/pdf/${interviewReportId}`,null,{
+        responseType:'blob'
+    })
     return response.data
 }
