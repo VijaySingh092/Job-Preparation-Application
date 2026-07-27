@@ -31,23 +31,161 @@ const interviewReportSchema = z.object({
     title:z.string().describe("The title of the job for which the interview report is generated")
 })
 
-async function generateInterviewReport({resume,selfDescription,jobDescription}){
+// async function generateInterviewReport({resume,selfDescription,jobDescription}){
 
-    const prompt =`Generate an interview report for a candidate with the following details: 
-        Resume:${resume}
-        Self Description:${selfDescription}
-        Job Description:${jobDescription}`
+//     const prompt =`Generate an interview report for a candidate with the following details: 
+//         Resume:${resume}
+//         Self Description:${selfDescription}
+//         Job Description:${jobDescription}`
+
+//     const response = await ai.models.generateContent({
+//         model:'gemini-flash-latest',
+//         contents:prompt,
+//         config:{
+//             responseMimeType:"application/json",
+//             responseSchema:zodToJsonSchema(interviewReportSchema)
+//         }
+//     })
+//     return JSON.parse(response.text)
+// }
+
+
+
+
+
+
+
+
+async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
+
+    const prompt = `
+You are an expert technical interviewer.
+
+Analyze the following candidate and generate an interview report.
+
+Resume:
+${resume}
+
+Self Description:
+${selfDescription}
+
+Job Description:
+${jobDescription}
+
+IMPORTANT INSTRUCTIONS:
+
+Return ONLY valid JSON.
+
+The JSON MUST contain exactly these fields:
+
+{
+  "title": string,
+  "matchScore": number,
+  "technicalQuestions":[
+    {
+      "question":string,
+      "intention":string,
+      "answer":string
+    }
+  ],
+  "behavioralQuestions":[
+    {
+      "question":string,
+      "intention":string,
+      "answer":string
+    }
+  ],
+  "skillGaps":[
+    {
+      "skill":string,
+      "severity":"low" | "medium" | "high"
+    }
+  ],
+  "preparationPlan":[
+    {
+      "day":number,
+      "focus":string,
+      "tasks":[string]
+    }
+  ]
+}
+
+Do not include markdown.
+Do not include explanation.
+Return only JSON.
+`;
 
     const response = await ai.models.generateContent({
-        model:'gemini-flash-latest',
-        contents:prompt,
-        config:{
-            responseMimeType:"application/json",
-            responseSchema:zodToJsonSchema(interviewReportSchema)
+        model: "gemini-flash-latest",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json"
         }
-    })
-    return JSON.parse(response.text)
+    });
+
+    const raw = JSON.parse(response.text);
+
+    console.log("Gemini Response:");
+    console.dir(raw, { depth: null });
+
+    const normalized = {
+        title:
+            raw.title ??
+            raw.position_applied_for ??
+            raw.job_applied ??
+            raw.appliedRole ??
+            "Interview Report",
+
+        matchScore:
+            raw.matchScore ??
+            Number(
+                String(
+                    raw.overall_match_score ??
+                    raw.score ??
+                    0
+                ).replace("%", "")
+            ),
+
+        technicalQuestions:
+            raw.technicalQuestions ??
+            raw.technical_questions ??
+            [],
+
+        behavioralQuestions:
+            raw.behavioralQuestions ??
+            raw.behavioral_questions ??
+            [],
+
+        skillGaps:
+            raw.skillGaps ??
+            raw.skill_gaps ??
+            [],
+
+        preparationPlan:
+            raw.preparationPlan ??
+            raw.preparation_plan ??
+            []
+    };
+
+    const validated = interviewReportSchema.safeParse(normalized);
+
+    if (!validated.success) {
+        console.log(validated.error.format());
+        throw new Error("Gemini returned an invalid interview report.");
+    }
+
+    return validated.data;
 }
+
+
+
+
+
+
+
+
+
+//
 
 async function generatePdfFromHtml(htmlContent){
     const browser = await puppeteer.launch()

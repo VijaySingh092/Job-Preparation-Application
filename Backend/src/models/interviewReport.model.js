@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const technicalQuestionSchema = new mongoose.Schema({
     question:{
         type:String,
-        require:[true,'technical question is required']
+        required:[true,'technical question is required']
     },
     intention:{
         type:String,
@@ -80,7 +80,7 @@ const interviewReportSchema = new mongoose.Schema({
         max:100
     },
     technicalQuestions:[technicalQuestionSchema],
-    behaviouralQuestion:[behaviouralQuestionSchema],
+    behaviouralQuestions:[behaviouralQuestionSchema],
     skillGaps:[skillGapSchema],
     preparationPlan:[preparationPlanSchema],
     user:{
